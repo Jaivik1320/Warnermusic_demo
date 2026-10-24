@@ -1,0 +1,930 @@
+<title>WMG Storefront Dev</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
+
+:root {
+  --bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--surface3:#222;
+  --border:#2a2a2a;--border2:#333;
+  --text:#f0f0f0;--text2:#aaa;--text3:#666;
+  --gold:#c9a84c;--gold2:#e8c96a;--gold-light:#1a1500;
+  --red:#e53e3e;--green:#38a169;--green-light:#0d1f15;
+  --accent:#c9a84c;color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+/* TICKER */
+.ticker{background:#c9a84c;color:#000;font-size:11px;font-weight:700;padding:6px 0;overflow:hidden;flex-shrink:0;letter-spacing:.04em}
+.ticker-inner{display:inline-flex;white-space:nowrap;animation:scroll 30s linear infinite}
+.ticker-inner:hover{animation-play-state:paused}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{padding:0 28px;display:inline-flex;align-items:center;gap:6px}
+.ticker-item::after{content:'◆';padding-left:28px;opacity:.5}
+
+/* LAYOUT */
+.app{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-logo{padding:18px 20px;border-bottom:1px solid var(--border)}
+.logo-wmg{font-family:'Playfair Display',serif;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:.06em;margin-bottom:2px}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.nav-section{padding:10px 0}
+.nav-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:0 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;color:var(--text2);font-size:13px;font-weight:500}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--gold-light);color:var(--gold);border-left-color:var(--gold)}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px}
+.nav-status{padding:12px 20px;border-top:1px solid var(--border);margin-top:auto}
+.status-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);margin-bottom:4px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0}
+.dot.warn{background:var(--gold)}.dot.red{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.content{flex:1;overflow-y:auto;padding:18px 22px}
+
+/* BUTTONS */
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em}
+.btn-gold{background:var(--gold);color:#000}.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2)}.btn-outline:hover{background:var(--surface2)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+
+/* PAGE */
+.page{display:none}.page.active{display:block}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.06em}
+
+/* KPI */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
+.kpi-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:800;line-height:1;margin-bottom:2px;font-variant-numeric:tabular-nums}
+.kpi-delta{font-size:11px;color:var(--text3)}
+.kpi-delta.up{color:var(--green)}.kpi-delta.down{color:var(--red)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.badge-gold{background:var(--gold-light);color:var(--gold)}
+.badge-red{background:#2d1010;color:var(--red)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;gap:2px}
+.tab{padding:7px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;letter-spacing:.02em}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* PRODUCT CARD */
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s}
+.product-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.product-thumb{height:140px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.product-badge{position:absolute;top:8px;left:8px}
+.product-info{padding:10px 12px}
+.product-name{font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-artist{font-size:11px;color:var(--text3);margin-bottom:7px}
+.product-price{font-size:14px;font-weight:800;color:var(--gold)}
+.product-actions{display:flex;gap:6px;margin-top:8px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+
+/* SECTION EDITOR */
+.section-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.section-block:hover{border-color:var(--gold)}
+.section-block.selected{border-color:var(--gold);background:var(--gold-light)}
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:0}
+.section-handle{color:var(--text3);font-size:14px;cursor:grab}
+.section-name{font-size:12px;font-weight:600;flex:1}
+.section-toggle{font-size:11px;color:var(--text3)}
+
+/* SETTINGS PANEL */
+.settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px}
+.form-input{width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;color:var(--text)}
+.form-input:focus{outline:1px solid var(--gold)}
+select.form-input option{background:var(--surface2)}
+
+/* A11Y */
+.a11y-issue{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.a11y-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.a11y-label{font-size:12px;font-weight:600;margin-bottom:2px}
+.a11y-desc{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* LIQUID CODE */
+.code-block{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Courier New',monospace;font-size:11px;line-height:1.7;overflow-x:auto;color:#e6edf3;margin-top:10px}
+.kw{color:#ff7b72}.str{color:#a5d6ff}.tag{color:#7ee787}.cmt{color:#8b949e}.prop{color:#d2a8ff}.num{color:#79c0ff}
+
+/* CHART WRAP */
+.chart-wrap{width:100%}.chart-wrap canvas{width:100%!important;display:block}
+
+/* METRIC ROW */
+.metric-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.metric-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:3px;overflow:hidden}
+.metric-bar{height:100%;border-radius:3px;transition:width .6s}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--gold);color:#000;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:700;z-index:9999;transition:transform .3s;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:22px;width:500px;max-width:calc(100vw - 32px);max-height:85vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)}
+
+/* PREVIEW STOREFRONT */
+.storefront-preview{background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.sf-header{background:#111;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.sf-logo{font-family:'Playfair Display',serif;font-size:14px;font-weight:800;color:var(--gold)}
+.sf-nav{display:flex;gap:16px;margin-left:auto}
+.sf-nav a{color:#aaa;font-size:11px;text-decoration:none;cursor:pointer}
+.sf-hero{background:linear-gradient(135deg,#1a0533,#0d1a2e);padding:28px 20px;text-align:center;color:#fff}
+.sf-hero-tag{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.sf-hero-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:800;margin-bottom:6px;line-height:1.2}
+.sf-hero-sub{font-size:12px;color:#aaa;margin-bottom:14px}
+.sf-products{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;background:#fff}
+.sf-product{background:#f9f9f9;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .15s}
+.sf-product:hover{background:#f0f0f0}
+.sf-product-img{font-size:32px;margin-bottom:6px}
+.sf-product-name{font-size:11px;font-weight:700;color:#111;margin-bottom:2px}
+.sf-product-price{font-size:12px;font-weight:800;color:#c9a84c}
+
+/* TEST */
+.test-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.test-status{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.test-pass{background:var(--green-light);color:var(--green)}
+.test-fail{background:#2d1010;color:var(--red)}
+.test-skip{background:var(--surface3);color:var(--text3)}
+
+@media(max-width:640px){
+  .sidebar{display:none}.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}
+}
+</style>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="tickerInner"></div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wmg">WARNER MUSIC GROUP</div>
+      <div class="logo-sub">Storefront Dev Console</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Storefronts</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">🏠 Dashboard</div>
+      <div class="nav-item" onclick="showPage('storefront',this)">🛍️ Live Preview</div>
+      <div class="nav-item" onclick="showPage('products',this)">📦 Products <span class="nav-badge">3</span></div>
+      <div class="nav-item" onclick="showPage('orders',this)">🧾 Orders</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Development</div>
+      <div class="nav-item" onclick="showPage('theme',this)">🎨 Theme Editor</div>
+      <div class="nav-item" onclick="showPage('liquid',this)">{ } Liquid Sections</div>
+      <div class="nav-item" onclick="showPage('testing',this)">✅ Release Testing</div>
+      <div class="nav-item" onclick="showPage('a11y',this)">♿ Accessibility</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Support</div>
+      <div class="nav-item" onclick="showPage('tickets',this)">🎫 Tickets <span class="nav-badge">4</span></div>
+    </div>
+    <div class="nav-status">
+      <div class="status-row"><span class="dot"></span> 3 stores live</div>
+      <div class="status-row"><span class="dot warn"></span> 1 release pending</div>
+      <div class="status-row"><span class="dot"></span> CI passing</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div style="font-size:11px;color:var(--text3)" id="liveClock"></div>
+      <button class="btn btn-gold btn-sm" onclick="showPage('theme',document.getElementById('nav-theme'))">+ New Section</button>
+      <button class="btn btn-outline btn-sm" onclick="toggleTheme()">☀️</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="grid-4" style="margin-bottom:14px">
+          <div class="kpi"><div class="kpi-label">Revenue Today</div><div class="kpi-value">$84K</div><div class="kpi-delta up">↑ 22% vs yesterday</div></div>
+          <div class="kpi"><div class="kpi-label">Orders Today</div><div class="kpi-value" id="kpiOrders">312</div><div class="kpi-delta up">↑ 18 last hour</div></div>
+          <div class="kpi"><div class="kpi-label">Conversion Rate</div><div class="kpi-value">3.8%</div><div class="kpi-delta up">↑ 0.4pt</div></div>
+          <div class="kpi"><div class="kpi-label">Open Tickets</div><div class="kpi-value" id="kpiTickets">4</div><div class="kpi-delta down">↑ 2 new today</div></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:14px">
+          <div class="card">
+            <div class="card-title">📈 Revenue — 14 Days</div>
+            <div class="chart-wrap"><canvas id="revChart" height="120"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🏪 Store Health</div>
+            <div id="storeHealth"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🔥 Top Products This Week</div>
+            <div id="topProducts"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎫 Recent Tickets</div>
+            <div id="recentTickets"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ STOREFRONT PREVIEW ══ -->
+      <div class="page" id="page-storefront">
+        <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+          <select class="form-input" style="width:auto" onchange="switchStore(this.value)">
+            <option value="dua">Dua Lipa — Official Store</option>
+            <option value="bruno">Bruno Mars — Official Store</option>
+            <option value="ed">Ed Sheeran — Official Store</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="toast('🔗 Shopify Admin opened')">Shopify Admin ↗</button>
+          <button class="btn btn-gold btn-sm" onclick="toast('🚀 Theme pushed to preview')">Push to Preview</button>
+        </div>
+        <div class="storefront-preview" id="storefrontPreview"></div>
+      </div>
+
+      <!-- ══ PRODUCTS ══ -->
+      <div class="page" id="page-products">
+        <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center">
+          <select class="form-input" style="width:auto"><option>All Stores</option><option>Dua Lipa</option><option>Bruno Mars</option><option>Ed Sheeran</option></select>
+          <select class="form-input" style="width:auto"><option>All Types</option><option>Vinyl</option><option>Merch</option><option>Bundle</option><option>Signed</option></select>
+          <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="openNewProduct()">+ New Product</button>
+        </div>
+        <div class="grid-3" id="productGrid"></div>
+      </div>
+
+      <!-- ══ ORDERS ══ -->
+      <div class="page" id="page-orders">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-gold btn-sm" id="oAll" onclick="filterOrders('all')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="filterOrders('fulfilled')">Fulfilled</button>
+          <button class="btn btn-outline btn-sm" onclick="filterOrders('pending')">Pending</button>
+          <button class="btn btn-outline btn-sm" onclick="filterOrders('refund')">Refund Request</button>
+        </div>
+        <div class="card"><table class="tbl" id="orderTable"></table></div>
+      </div>
+
+      <!-- ══ THEME EDITOR ══ -->
+      <div class="page" id="page-theme">
+        <div class="grid-2" style="gap:16px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Sections</div>
+            <div id="sectionList"></div>
+            <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px" onclick="addSection()">+ Add Section</button>
+          </div>
+          <div class="settings-panel" id="sectionSettings">
+            <div style="color:var(--text3);font-size:12px;padding:20px 0;text-align:center">Select a section to edit its settings</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LIQUID SECTIONS ══ -->
+      <div class="page" id="page-liquid">
+        <div class="tabs" id="liquidTabs">
+          <div class="tab active" onclick="switchTab('liq-hero',this,'liquidTabs')">featured-artist.liquid</div>
+          <div class="tab" onclick="switchTab('liq-bundle',this,'liquidTabs')">album-bundle.liquid</div>
+          <div class="tab" onclick="switchTab('liq-countdown',this,'liquidTabs')">release-countdown.liquid</div>
+        </div>
+        <div class="tab-panel active" id="tab-liq-hero">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Configurable hero section with artist name, release title, background image, CTA — all editable from Shopify theme settings without code.</div>
+          <div class="code-block"><span class="cmt">{% comment %} featured-artist.liquid — WMG Storefront {% endcomment %}</span>
+<span class="tag">{% schema %}</span>
+{
+  <span class="str">"name"</span>: <span class="str">"Featured Artist"</span>,
+  <span class="str">"settings"</span>: [
+    { <span class="str">"type"</span>: <span class="str">"image_picker"</span>, <span class="str">"id"</span>: <span class="str">"bg_image"</span>, <span class="str">"label"</span>: <span class="str">"Background Image"</span> },
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"artist_name"</span>, <span class="str">"label"</span>: <span class="str">"Artist Name"</span>, <span class="str">"default"</span>: <span class="str">"Dua Lipa"</span> },
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"release_title"</span>, <span class="str">"label"</span>: <span class="str">"Release Title"</span> },
+    { <span class="str">"type"</span>: <span class="str">"url"</span>, <span class="str">"id"</span>: <span class="str">"cta_url"</span>, <span class="str">"label"</span>: <span class="str">"CTA Link"</span> },
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"cta_text"</span>, <span class="str">"label"</span>: <span class="str">"CTA Label"</span>, <span class="str">"default"</span>: <span class="str">"Shop Now"</span> }
+  ]
+}
+<span class="tag">{% endschema %}</span>
+
+<span class="tag">&lt;section</span> <span class="prop">class</span>=<span class="str">"featured-artist"</span>
+  <span class="prop">style</span>=<span class="str">"background-image: url({{ section.settings.bg_image | img_url: 'master' }})"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"featured-artist__inner"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1</span> <span class="prop">class</span>=<span class="str">"featured-artist__name"</span><span class="tag">&gt;</span>
+      {{ section.settings.artist_name }}
+    <span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;p</span> <span class="prop">class</span>=<span class="str">"featured-artist__release"</span><span class="tag">&gt;</span>
+      {{ section.settings.release_title }}
+    <span class="tag">&lt;/p&gt;</span>
+    <span class="kw">{% if</span> section.settings.cta_url != blank <span class="kw">%}</span>
+    <span class="tag">&lt;a</span> <span class="prop">href</span>=<span class="str">"{{ section.settings.cta_url }}"</span>
+       <span class="prop">class</span>=<span class="str">"btn btn--primary"</span>
+       <span class="prop">aria-label</span>=<span class="str">"{{ section.settings.cta_text }} — {{ section.settings.artist_name }}"</span><span class="tag">&gt;</span>
+      {{ section.settings.cta_text }}
+    <span class="tag">&lt;/a&gt;</span>
+    <span class="kw">{% endif %}</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/section&gt;</span>
+
+<span class="tag">&lt;style&gt;</span>
+  <span class="prop">.featured-artist</span> {
+    background-size: cover; background-position: center;
+    min-height: <span class="num">480px</span>; display: flex; align-items: center;
+  }
+  <span class="prop">.featured-artist__name</span> { font-size: <span class="num">3rem</span>; font-weight: <span class="num">800</span>; }
+<span class="tag">&lt;/style&gt;</span></div>
+        </div>
+        <div class="tab-panel" id="tab-liq-bundle">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Album bundle section — groups vinyl + merch into a discounted set. Configurable items, pricing and discount label from theme settings.</div>
+          <div class="code-block"><span class="cmt">{% comment %} album-bundle.liquid — WMG Storefront {% endcomment %}</span>
+<span class="tag">{% schema %}</span>
+{
+  <span class="str">"name"</span>: <span class="str">"Album Bundle"</span>,
+  <span class="str">"blocks"</span>: [{
+    <span class="str">"type"</span>: <span class="str">"bundle_item"</span>, <span class="str">"name"</span>: <span class="str">"Bundle Item"</span>,
+    <span class="str">"settings"</span>: [
+      { <span class="str">"type"</span>: <span class="str">"product"</span>, <span class="str">"id"</span>: <span class="str">"product"</span>, <span class="str">"label"</span>: <span class="str">"Product"</span> },
+      { <span class="str">"type"</span>: <span class="str">"checkbox"</span>, <span class="str">"id"</span>: <span class="str">"featured"</span>, <span class="str">"label"</span>: <span class="str">"Feature this item"</span> }
+    ]
+  }],
+  <span class="str">"settings"</span>: [
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"bundle_title"</span>, <span class="str">"label"</span>: <span class="str">"Bundle Title"</span> },
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"discount_label"</span>, <span class="str">"label"</span>: <span class="str">"Discount Label"</span>, <span class="str">"default"</span>: <span class="str">"Save 15%"</span> }
+  ]
+}
+<span class="tag">{% endschema %}</span>
+
+<span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"bundle"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;h2&gt;</span>{{ section.settings.bundle_title }}<span class="tag">&lt;/h2&gt;</span>
+  <span class="tag">&lt;span</span> <span class="prop">class</span>=<span class="str">"bundle__badge"</span><span class="tag">&gt;</span>{{ section.settings.discount_label }}<span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"bundle__items"</span><span class="tag">&gt;</span>
+    <span class="kw">{% for</span> block <span class="kw">in</span> section.blocks <span class="kw">%}</span>
+      <span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"bundle__item{% if block.settings.featured %} bundle__item--featured{% endif %}"</span>
+           {{ block.shopify_attributes }}<span class="tag">&gt;</span>
+        <span class="tag">&lt;img</span> <span class="prop">src</span>=<span class="str">"{{ block.settings.product.featured_image | img_url: '300x' }}"</span>
+             <span class="prop">alt</span>=<span class="str">"{{ block.settings.product.title }}"</span> <span class="prop">loading</span>=<span class="str">"lazy"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;p&gt;</span>{{ block.settings.product.title }}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="kw">{% endfor %}</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
+        </div>
+        <div class="tab-panel" id="tab-liq-countdown">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Release countdown timer section — counts down to an album drop date set in theme settings. Auto-hides when release goes live.</div>
+          <div class="code-block"><span class="cmt">{% comment %} release-countdown.liquid — WMG Storefront {% endcomment %}</span>
+<span class="tag">{% schema %}</span>
+{
+  <span class="str">"name"</span>: <span class="str">"Release Countdown"</span>,
+  <span class="str">"settings"</span>: [
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"release_label"</span>, <span class="str">"label"</span>: <span class="str">"Release Label"</span> },
+    { <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"id"</span>: <span class="str">"release_date"</span>, <span class="str">"label"</span>: <span class="str">"Release Date (ISO)"</span>,
+      <span class="str">"info"</span>: <span class="str">"e.g. 2025-11-01T00:00:00Z"</span> }
+  ]
+}
+<span class="tag">{% endschema %}</span>
+
+<span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"countdown"</span>
+     <span class="prop">data-release</span>=<span class="str">"{{ section.settings.release_date }}"</span>
+     <span class="prop">aria-live</span>=<span class="str">"polite"</span> <span class="prop">aria-label</span>=<span class="str">"Release countdown"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;p</span> <span class="prop">class</span>=<span class="str">"countdown__label"</span><span class="tag">&gt;</span>{{ section.settings.release_label }}<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;div</span> <span class="prop">class</span>=<span class="str">"countdown__units"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;span</span> <span class="prop">class</span>=<span class="str">"countdown__days"</span><span class="tag">&gt;&lt;/span&gt;</span>
+    <span class="tag">&lt;span</span> <span class="prop">class</span>=<span class="str">"countdown__hours"</span><span class="tag">&gt;&lt;/span&gt;</span>
+    <span class="tag">&lt;span</span> <span class="prop">class</span>=<span class="str">"countdown__mins"</span><span class="tag">&gt;&lt;/span&gt;</span>
+    <span class="tag">&lt;span</span> <span class="prop">class</span>=<span class="str">"countdown__secs"</span><span class="tag">&gt;&lt;/span&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+<span class="cmt">// Scoped to section — no globals, no one-off workarounds</span>
+(<span class="kw">function</span>() {
+  <span class="kw">const</span> el = document.querySelector(<span class="str">'.countdown'</span>);
+  <span class="kw">if</span> (!el) <span class="kw">return</span>;
+  <span class="kw">const</span> target = <span class="kw">new</span> Date(el.dataset.release).getTime();
+  <span class="kw">function</span> tick() {
+    <span class="kw">const</span> diff = target - Date.now();
+    <span class="kw">if</span> (diff <= <span class="num">0</span>) { el.hidden = <span class="kw">true</span>; <span class="kw">return</span>; }
+    el.querySelector(<span class="str">'.countdown__days'</span>).textContent  = Math.floor(diff/<span class="num">86400000</span>) + <span class="str">'d'</span>;
+    el.querySelector(<span class="str">'.countdown__hours'</span>).textContent = Math.floor(diff/<span class="num">3600000</span>%<span class="num">24</span>) + <span class="str">'h'</span>;
+    el.querySelector(<span class="str">'.countdown__mins'</span>).textContent  = Math.floor(diff/<span class="num">60000</span>%<span class="num">60</span>) + <span class="str">'m'</span>;
+    el.querySelector(<span class="str">'.countdown__secs'</span>).textContent  = Math.floor(diff/<span class="num">1000</span>%<span class="num">60</span>) + <span class="str">'s'</span>;
+  }
+  tick(); setInterval(tick, <span class="num">1000</span>);
+})();
+<span class="tag">&lt;/script&gt;</span></div>
+        </div>
+      </div>
+
+      <!-- ══ RELEASE TESTING ══ -->
+      <div class="page" id="page-testing">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--text2)">Release: <strong>Dua Lipa — Radical Optimism Drop v2.3</strong></span>
+          <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="runTests()">▶ Run All Tests</button>
+          <button class="btn btn-outline btn-sm" onclick="toast('📋 Test plan exported')">Export Plan</button>
+        </div>
+        <div class="tabs" id="testTabs">
+          <div class="tab active" onclick="switchTab('t-checkout',this,'testTabs')">Checkout Flow</div>
+          <div class="tab" onclick="switchTab('t-cross',this,'testTabs')">Cross-Browser</div>
+          <div class="tab" onclick="switchTab('t-regression',this,'testTabs')">Regression</div>
+          <div class="tab" onclick="switchTab('t-playwright',this,'testTabs')">Playwright</div>
+        </div>
+        <div class="tab-panel active" id="tab-t-checkout"><div id="testCheckout"></div></div>
+        <div class="tab-panel" id="tab-t-cross"><div id="testCross"></div></div>
+        <div class="tab-panel" id="tab-t-regression"><div id="testRegression"></div></div>
+        <div class="tab-panel" id="tab-t-playwright">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Automated Playwright test — checkout flow with merch item, verifies cart, checkout redirect and order confirmation.</div>
+          <div class="code-block"><span class="kw">import</span> { test, expect } <span class="kw">from</span> <span class="str">'@playwright/test'</span>;
+
+test(<span class="str">'Merch checkout — full conversion path'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="cmt">// 1. Land on product page</span>
+  <span class="kw">await</span> page.goto(<span class="str">'https://dualipa.store/products/radical-optimism-vinyl'</span>);
+  <span class="kw">await</span> expect(page.locator(<span class="str">'h1'</span>)).toContainText(<span class="str">'Radical Optimism'</span>);
+
+  <span class="cmt">// 2. Select variant and add to cart</span>
+  <span class="kw">await</span> page.selectOption(<span class="str">'select[name="id"]'</span>, { label: <span class="str">'Black Vinyl'</span> });
+  <span class="kw">await</span> page.click(<span class="str">'button[name="add"]'</span>);
+  <span class="kw">await</span> expect(page.locator(<span class="str">'.cart-count'</span>)).toHaveText(<span class="str">'1'</span>);
+
+  <span class="cmt">// 3. Proceed to checkout</span>
+  <span class="kw">await</span> page.click(<span class="str">'a[href="/checkout"]'</span>);
+  <span class="kw">await</span> expect(page).toHaveURL(<span class="str">/checkout/</span>);
+
+  <span class="cmt">// 4. Verify cart line item</span>
+  <span class="kw">await</span> expect(page.locator(<span class="str">'.product__description'</span>))
+    .toContainText(<span class="str">'Radical Optimism'</span>);
+
+  <span class="cmt">// 5. Accessibility — keyboard nav through checkout</span>
+  <span class="kw">await</span> page.keyboard.press(<span class="str">'Tab'</span>);
+  <span class="kw">const</span> focused = page.locator(<span class="str">':focus'</span>);
+  <span class="kw">await</span> expect(focused).toBeVisible();
+});
+
+test(<span class="str">'Mobile viewport — cart and checkout'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.setViewportSize({ width: <span class="num">390</span>, height: <span class="num">844</span> }); <span class="cmt">// iPhone 14</span>
+  <span class="kw">await</span> page.goto(<span class="str">'/products/radical-optimism-vinyl'</span>);
+  <span class="kw">await</span> expect(page.locator(<span class="str">'.add-to-cart'</span>)).toBeVisible();
+  <span class="kw">await</span> expect(page.locator(<span class="str">'.add-to-cart'</span>)).toBeEnabled();
+});</div>
+        </div>
+      </div>
+
+      <!-- ══ ACCESSIBILITY ══ -->
+      <div class="page" id="page-a11y">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <span class="badge badge-gold">WCAG 2.1 AA Audit</span>
+          <span style="font-size:12px;color:var(--text2)">Store: Dua Lipa — Last run: today</span>
+          <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="runA11y()">Run Audit</button>
+        </div>
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="kpi"><div class="kpi-label">Issues Found</div><div class="kpi-value" id="a11yIssues">3</div><div class="kpi-delta down">2 critical</div></div>
+          <div class="kpi"><div class="kpi-label">Passing Checks</div><div class="kpi-value">41</div><div class="kpi-delta up">↑ vs last audit</div></div>
+          <div class="kpi"><div class="kpi-label">Contrast Score</div><div class="kpi-value">AA</div><div class="kpi-delta up">All pass</div></div>
+        </div>
+        <div class="card" id="a11yFeed"></div>
+      </div>
+
+      <!-- ══ TICKETS ══ -->
+      <div class="page" id="page-tickets">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-gold btn-sm" onclick="filterTickets('all')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="filterTickets('bug')">Bug</button>
+          <button class="btn btn-outline btn-sm" onclick="filterTickets('content')">Content</button>
+          <button class="btn btn-outline btn-sm" onclick="filterTickets('app')">App Issue</button>
+        </div>
+        <div id="ticketList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="productModalTitle">Product</div><button class="modal-close" onclick="closeModal('productModal')">✕</button></div>
+    <div id="productModalBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA ───────────────────────────────────────────────────────────────────
+const PRODUCTS=[
+  {id:1,name:'Radical Optimism Vinyl',artist:'Dua Lipa',price:'$34.99',emoji:'💿',type:'Vinyl',stock:142,badge:'New Drop',badgeCls:'badge-gold'},
+  {id:2,name:'Radical Optimism Tee',artist:'Dua Lipa',price:'$44.99',emoji:'👕',type:'Merch',stock:88,badge:'Limited',badgeCls:'badge-red'},
+  {id:3,name:'Vinyl + Tee Bundle',artist:'Dua Lipa',price:'$69.99',emoji:'🎁',type:'Bundle',stock:55,badge:'Save 15%',badgeCls:'badge-green'},
+  {id:4,name:'The Lazy Song Signed Print',artist:'Bruno Mars',price:'$89.99',emoji:'✍️',type:'Signed',stock:20,badge:'Signed',badgeCls:'badge-gold'},
+  {id:5,name:'24K Magic Hoodie',artist:'Bruno Mars',price:'$64.99',emoji:'🧥',type:'Merch',stock:34,badge:'',badgeCls:''},
+  {id:6,name:'Mathematics Vinyl',artist:'Ed Sheeran',price:'$29.99',emoji:'💿',type:'Vinyl',stock:201,badge:'Pre-order',badgeCls:'badge-red'},
+];
+
+const ORDERS=[
+  {id:'#5041',product:'Radical Optimism Vinyl',store:'Dua Lipa',date:'Oct 24',total:'$34.99',status:'fulfilled'},
+  {id:'#5040',product:'Vinyl + Tee Bundle',store:'Dua Lipa',date:'Oct 24',total:'$69.99',status:'fulfilled'},
+  {id:'#5039',product:'24K Magic Hoodie',store:'Bruno Mars',date:'Oct 23',total:'$64.99',status:'pending'},
+  {id:'#5038',product:'Mathematics Vinyl',store:'Ed Sheeran',date:'Oct 23',total:'$29.99',status:'pending'},
+  {id:'#5037',product:'Signed Print',store:'Bruno Mars',date:'Oct 22',total:'$89.99',status:'refund'},
+  {id:'#5036',product:'Radical Optimism Tee',store:'Dua Lipa',date:'Oct 22',total:'$44.99',status:'fulfilled'},
+];
+
+const TICKETS=[
+  {id:'TKT-091',title:'Add to Cart not working on Safari iOS',store:'Dua Lipa',type:'bug',priority:'High',status:'open',desc:'Customers on iPhone 14 (Safari) report the ATC button does nothing. Reproducible on 16.5. Likely a JS event listener issue with the variant selector.'},
+  {id:'TKT-090',title:'Hero banner image broken — wrong CDN URL',store:'Bruno Mars',type:'content',priority:'Medium',status:'open',desc:'bg_image URL returning 404. Merchant set an external URL instead of Shopify CDN path. Need to update theme settings and add validation.'},
+  {id:'TKT-089',title:'Mailchimp app not syncing orders',store:'Ed Sheeran',type:'app',priority:'Medium',status:'investigating',desc:'Post-purchase email sequence not triggering. Mailchimp webhook returning 422. Checking API key rotation.'},
+  {id:'TKT-088',title:'Product description truncated on mobile',store:'Dua Lipa',type:'bug',priority:'Low',status:'resolved',desc:'Long descriptions clipped at 2 lines on viewport 375px. Fixed: removed hard max-height, added read-more toggle.'},
+];
+
+const CHECKOUT_TESTS=[
+  {name:'Product page loads under 3s',status:'pass',detail:'LCP 1.8s'},
+  {name:'Variant selector updates price',status:'pass',detail:'All 4 variants'},
+  {name:'Add to Cart fires cart drawer',status:'pass',detail:'Cart count +1'},
+  {name:'Cart page shows correct line items',status:'pass',detail:'Price + qty'},
+  {name:'Checkout redirect to Shopify',status:'pass',detail:'HTTPS confirmed'},
+  {name:'Discount code applies at checkout',status:'pass',detail:'WMGFAN15'},
+  {name:'Mobile checkout — sticky CTA visible',status:'fail',detail:'Hidden behind nav on 375px'},
+  {name:'Order confirmation page loads',status:'pass',detail:'Thank you page OK'},
+];
+
+const CROSS_TESTS=[
+  {name:'Chrome 128 — Desktop',status:'pass',detail:'All flows pass'},
+  {name:'Firefox 129 — Desktop',status:'pass',detail:'All flows pass'},
+  {name:'Safari 17 — Desktop',status:'pass',detail:'All flows pass'},
+  {name:'Chrome — Android (Pixel 7)',status:'pass',detail:'All flows pass'},
+  {name:'Safari — iOS 17 (iPhone 14)',status:'fail',detail:'ATC button unresponsive'},
+  {name:'Samsung Internet 24',status:'pass',detail:'Minor font render diff'},
+];
+
+const REGRESSION_TESTS=[
+  {name:'Homepage hero section renders',status:'pass',detail:''},
+  {name:'Featured artist section settings apply',status:'pass',detail:''},
+  {name:'Album bundle discount badge shows',status:'pass',detail:''},
+  {name:'Release countdown ticks correctly',status:'pass',detail:''},
+  {name:'Search returns relevant products',status:'pass',detail:''},
+  {name:'Collections page pagination',status:'skip',detail:'Skipped — no data'},
+  {name:'Cart persists across pages',status:'pass',detail:''},
+  {name:'Footer links all resolve',status:'pass',detail:''},
+];
+
+const A11Y_ISSUES=[
+  {sev:'critical',icon:'🔴',label:'Missing alt text — hero banner image',desc:'<img> in featured-artist section has no alt attribute. Screen readers will announce the filename. Fix: add alt="{{ section.settings.alt_text | default: artist_name }}" to schema and template.',wcag:'WCAG 1.1.1 Non-text Content'},
+  {sev:'critical',icon:'🔴',label:'Add to Cart button — no aria-label when out of stock',desc:'Button text changes to "Sold Out" but aria-label is not updated. Screen reader users cannot distinguish. Fix: update JS to set aria-label dynamically.',wcag:'WCAG 4.1.2 Name, Role, Value'},
+  {sev:'warning',icon:'🟡',label:'Form labels missing on email signup',desc:'Email input in newsletter section has placeholder but no associated <label>. Fix: add visible or visually-hidden label, connect with for/id pair.',wcag:'WCAG 1.3.1 Info and Relationships'},
+];
+
+const STORE_DATA={
+  dua:{name:"Dua Lipa",tag:"Radical Optimism",sub:"Out Now — Shop vinyl, merch & bundles",products:[{e:'💿',n:'Radical Optimism LP',p:'$34.99'},{e:'👕',n:'Tour Tee 2025',p:'$44.99'},{e:'🎁',n:'Bundle Deal',p:'$69.99'}]},
+  bruno:{name:"Bruno Mars",tag:"24K Magic",sub:"Limited edition signed items — while stocks last",products:[{e:'✍️',n:'Signed Print',p:'$89.99'},{e:'🧥',n:'24K Hoodie',p:'$64.99'},{e:'💿',n:'Vinyl Box Set',p:'$79.99'}]},
+  ed:{name:"Ed Sheeran",tag:"Mathematics",sub:"Pre-order now — ships November",products:[{e:'💿',n:'Mathematics Vinyl',p:'$29.99'},{e:'👕',n:'Acoustic Tee',p:'$39.99'},{e:'📦',n:'Fan Bundle',p:'$59.99'}]},
+};
+
+const SECTIONS=[
+  {name:'Featured Artist Hero',icon:'🎤',enabled:true},
+  {name:'Release Countdown',icon:'⏳',enabled:true},
+  {name:'Album Bundle',icon:'🎁',enabled:true},
+  {name:'Product Grid',icon:'📦',enabled:true},
+  {name:'Newsletter Signup',icon:'📧',enabled:false},
+  {name:'Social Feed',icon:'📱',enabled:false},
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let orderFilter='all', ticketFilter='all', selectedSection=null, isDark=true;
+
+// ── TICKER ──────────────────────────────────────────────────────────────────
+function buildTicker(){
+  const items=['🎵 Dua Lipa — Radical Optimism Drop live now','💿 Bruno Mars signed prints — 20 remaining','📦 Ed Sheeran Mathematics LP — pre-order open','🚨 TKT-091: Safari iOS ATC bug — investigating','✅ Playwright CI — 47/48 tests passing','🎨 Theme v2.3 pushed to Dua Lipa preview','♿ WCAG audit: 3 issues flagged for review'];
+  const doubled=[...items,...items];
+  document.getElementById('tickerInner').innerHTML=doubled.map(i=>`<span class="ticker-item">${i}</span>`).join('');
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+const TITLES={dashboard:'Dashboard',storefront:'Live Storefront Preview',products:'Products',orders:'Orders',theme:'Theme Editor',liquid:'Liquid Sections',testing:'Release Testing',a11y:'Accessibility Audit',tickets:'Support Tickets'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('pageTitle').textContent=TITLES[id]||id;
+  if(id==='storefront')renderStorefront('dua');
+  if(id==='products')renderProducts();
+  if(id==='orders')renderOrders();
+  if(id==='theme')renderSections();
+  if(id==='testing')renderTests();
+  if(id==='a11y')renderA11y();
+  if(id==='tickets')renderTickets();
+  if(id==='dashboard'){renderDashboard();setTimeout(drawCharts,80);}
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function updateClock(){document.getElementById('liveClock').textContent=new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';}
+setInterval(updateClock,1000);updateClock();
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let tt;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600);}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── THEME ──────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.style.setProperty('--bg',isDark?'#0a0a0a':'#f5f5f5');
+  document.documentElement.style.setProperty('--surface',isDark?'#111':'#fff');
+  document.documentElement.style.setProperty('--surface2',isDark?'#1a1a1a':'#f0f0f0');
+  document.documentElement.style.setProperty('--surface3',isDark?'#222':'#e5e5e5');
+  document.documentElement.style.setProperty('--border',isDark?'#2a2a2a':'#e0e0e0');
+  document.documentElement.style.setProperty('--border2',isDark?'#333':'#ccc');
+  document.documentElement.style.setProperty('--text',isDark?'#f0f0f0':'#111');
+  document.documentElement.style.setProperty('--text2',isDark?'#aaa':'#555');
+  document.documentElement.style.setProperty('--text3',isDark?'#666':'#999');
+  document.documentElement.style.setProperty('--gold-light',isDark?'#1a1500':'#fff8e1');
+  document.documentElement.style.setProperty('--green-light',isDark?'#0d1f15':'#e8f5e9');
+  document.querySelector('.btn[onclick="toggleTheme()"]').textContent=isDark?'☀️':'🌙';
+  setTimeout(drawCharts,50);
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function switchTab(id,el,tabsId){
+  const container=document.getElementById(tabsId).parentElement;
+  container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('tab-'+id);if(t)t.classList.add('active');
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+function renderDashboard(){
+  document.getElementById('storeHealth').innerHTML=[
+    {name:"Dua Lipa Store",status:'Live',cls:'badge-green',rev:'$51K',orders:189},
+    {name:"Bruno Mars Store",status:'Live',cls:'badge-green',rev:'$21K',orders:77},
+    {name:"Ed Sheeran Store",status:'Pre-order',cls:'badge-gold',rev:'$12K',orders:46},
+  ].map(s=>`<div class="metric-row"><div style="flex:1;font-size:12px;font-weight:600">${s.name}</div><span class="badge ${s.cls}">${s.status}</span><div style="font-size:12px;font-weight:700;color:var(--gold);margin-left:8px">${s.rev}</div></div>`).join('');
+
+  document.getElementById('topProducts').innerHTML=PRODUCTS.slice(0,4).map((p,i)=>`
+    <div class="metric-row">
+      <div style="font-size:16px;width:24px">${p.emoji}</div>
+      <div style="flex:1;font-size:12px"><div style="font-weight:600">${p.name}</div><div style="color:var(--text3);font-size:11px">${p.artist}</div></div>
+      <div style="font-size:12px;font-weight:700;color:var(--gold)">${p.price}</div>
+    </div>`).join('');
+
+  document.getElementById('recentTickets').innerHTML=TICKETS.slice(0,3).map(t=>`
+    <div class="metric-row">
+      <div style="flex:1;font-size:12px"><div style="font-weight:600">${t.id} — ${t.title.slice(0,36)}…</div><div style="color:var(--text3);font-size:11px">${t.store}</div></div>
+      <span class="badge badge-${t.status==='open'?'red':t.status==='resolved'?'green':'gold'}">${t.status}</span>
+    </div>`).join('');
+}
+
+// ── CHARTS ─────────────────────────────────────────────────────────────────
+function drawCharts(){
+  const c=document.getElementById('revChart');if(!c||!c.offsetWidth)return;
+  const dpr=window.devicePixelRatio||1,w=c.parentElement.offsetWidth||400,h=120;
+  c.style.width=w+'px';c.style.height=h+'px';c.width=w*dpr;c.height=h*dpr;
+  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  const data=[42,38,55,67,71,80,68,74,82,88,79,91,84,84];
+  const labels=['Oct11','','','','','','','','','','','','','Oct24'];
+  const maxV=Math.max(...data)*1.15;
+  const pad={t:10,r:10,b:24,l:36};
+  const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#2a2a2a';ctx.lineWidth=1;
+  [0,.5,1].forEach(f=>{
+    const y=pad.t+ch-ch*f;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();
+    ctx.fillStyle='#666';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText('$'+(maxV*f).toFixed(0)+'K',pad.l-4,y+3);
+  });
+  labels.forEach((l,i)=>{if(!l)return;const x=pad.l+(cw/(data.length-1))*i;ctx.fillStyle='#666';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(l,x,h-6);});
+  const pts=data.map((v,i)=>({x:pad.l+(cw/(data.length-1))*i,y:pad.t+ch-(v/maxV)*ch}));
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
+  grad.addColorStop(0,'rgba(201,168,76,.3)');grad.addColorStop(1,'rgba(201,168,76,0)');
+  ctx.globalAlpha=1;ctx.fillStyle=grad;
+  ctx.beginPath();ctx.moveTo(pts[0].x,pad.t+ch);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,pad.t+ch);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#c9a84c';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+}
+window.addEventListener('resize',drawCharts);
+
+// ── STOREFRONT PREVIEW ─────────────────────────────────────────────────────
+function renderStorefront(key){
+  const s=STORE_DATA[key];
+  document.getElementById('storefrontPreview').innerHTML=`
+    <div class="sf-header">
+      <div class="sf-logo">${s.name.toUpperCase()}</div>
+      <div class="sf-nav">
+        <a onclick="toast('Navigating to New Arrivals')">New Arrivals</a>
+        <a onclick="toast('Navigating to Vinyl')">Vinyl</a>
+        <a onclick="toast('Navigating to Merch')">Merch</a>
+        <a onclick="toast('Cart opened')">Cart (0)</a>
+      </div>
+    </div>
+    <div class="sf-hero">
+      <div class="sf-hero-tag">Warner Music Group · Official Store</div>
+      <div class="sf-hero-title">${s.tag}</div>
+      <div class="sf-hero-sub">${s.sub}</div>
+      <button class="btn btn-gold" onclick="toast('Shop Now clicked')">Shop Now</button>
+    </div>
+    <div class="sf-products">
+      ${s.products.map(p=>`<div class="sf-product" onclick="toast('${p.n} — Added to cart ✓')"><div class="sf-product-img">${p.e}</div><div class="sf-product-name">${p.n}</div><div class="sf-product-price">${p.p}</div></div>`).join('')}
+    </div>`;
+}
+function switchStore(v){renderStorefront(v);}
+
+// ── PRODUCTS ───────────────────────────────────────────────────────────────
+function renderProducts(){
+  document.getElementById('productGrid').innerHTML=PRODUCTS.map(p=>`
+    <div class="product-card" onclick="openProduct(${p.id})">
+      <div class="product-thumb" style="background:var(--surface2)">
+        ${p.badge?`<div class="product-badge"><span class="badge ${p.badgeCls}">${p.badge}</span></div>`:''}
+        ${p.emoji}
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-artist">${p.artist}</div>
+        <div class="product-price">${p.price}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">Stock: ${p.stock} · ${p.type}</div>
+        <div class="product-actions">
+          <button class="btn btn-gold btn-sm" onclick="event.stopPropagation();toast('✓ Added to test cart')">Add to Cart</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toast('📋 Liquid copied')">{ }</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function openProduct(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  document.getElementById('productModalTitle').textContent=p.name;
+  document.getElementById('productModalBody').innerHTML=`
+    <div style="font-size:48px;text-align:center;padding:16px 0">${p.emoji}</div>
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" value="${p.name}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label class="form-label">Price</label><input class="form-input" value="${p.price}"></div>
+      <div class="form-group"><label class="form-label">Stock</label><input class="form-input" value="${p.stock}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Type</label><select class="form-input"><option>${p.type}</option><option>Vinyl</option><option>Merch</option><option>Bundle</option><option>Signed</option></select></div>
+    <div class="form-group"><label class="form-label">Artist Store</label><input class="form-input" value="${p.artist}"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-gold" style="flex:1" onclick="toast('✅ Product saved');closeModal('productModal')">Save Changes</button>
+      <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+    </div>`;
+  document.getElementById('productModal').classList.add('open');
+}
+function openNewProduct(){
+  document.getElementById('productModalTitle').textContent='New Product';
+  document.getElementById('productModalBody').innerHTML=`
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" placeholder="Product name"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label class="form-label">Price</label><input class="form-input" placeholder="$0.00"></div>
+      <div class="form-group"><label class="form-label">Stock</label><input class="form-input" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Type</label><select class="form-input"><option>Vinyl</option><option>Merch</option><option>Bundle</option><option>Signed</option></select></div>
+    <div class="form-group"><label class="form-label">Artist Store</label><select class="form-input"><option>Dua Lipa</option><option>Bruno Mars</option><option>Ed Sheeran</option></select></div>
+    <button class="btn btn-gold" style="width:100%;margin-top:4px" onclick="toast('✅ Product created');closeModal('productModal')">Create Product</button>`;
+  document.getElementById('productModal').classList.add('open');
+}
+
+// ── ORDERS ─────────────────────────────────────────────────────────────────
+function renderOrders(){
+  const list=orderFilter==='all'?ORDERS:ORDERS.filter(o=>o.status===orderFilter);
+  document.getElementById('orderTable').innerHTML=`
+    <thead><tr><th>Order</th><th>Product</th><th>Store</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>${list.map(o=>`<tr>
+      <td style="font-weight:700">${o.id}</td>
+      <td>${o.product}</td>
+      <td style="color:var(--text3)">${o.store}</td>
+      <td style="color:var(--text3)">${o.date}</td>
+      <td style="font-weight:700;color:var(--gold)">${o.total}</td>
+      <td><span class="badge badge-${o.status==='fulfilled'?'green':o.status==='pending'?'gold':'red'}">${o.status}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="toast('Order ${o.id} details opened')">View</button></td>
+    </tr>`).join('')}</tbody>`;
+}
+function filterOrders(f){orderFilter=f;renderOrders();}
+
+// ── THEME EDITOR ───────────────────────────────────────────────────────────
+function renderSections(){
+  document.getElementById('sectionList').innerHTML=SECTIONS.map((s,i)=>`
+    <div class="section-block${selectedSection===i?' selected':''}" onclick="selectSection(${i})">
+      <div class="section-header">
+        <span class="section-handle">⠿</span>
+        <span style="font-size:16px">${s.icon}</span>
+        <span class="section-name">${s.name}</span>
+        <span class="section-toggle">${s.enabled?'●':'○'}</span>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleSection(${i})">${s.enabled?'Hide':'Show'}</button>
+      </div>
+    </div>`).join('');
+}
+function selectSection(i){
+  selectedSection=i;renderSections();
+  const s=SECTIONS[i];
+  document.getElementById('sectionSettings').innerHTML=`
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px">${s.icon} ${s.name}</div>
+    <div class="form-group"><label class="form-label">Heading</label><input class="form-input" value="${s.name}" oninput="toast('✏️ Setting updated')"></div>
+    <div class="form-group"><label class="form-label">Background</label><select class="form-input" onchange="toast('🎨 Background changed')"><option>Dark</option><option>Light</option><option>Brand Gold</option></select></div>
+    <div class="form-group"><label class="form-label">Padding</label><select class="form-input"><option>Normal</option><option>Large</option><option>None</option></select></div>
+    <div class="form-group"><label class="form-label">Visible</label><select class="form-input"><option>${s.enabled?'Visible':'Hidden'}</option><option>${s.enabled?'Hidden':'Visible'}</option></select></div>
+    <button class="btn btn-gold" style="width:100%;margin-top:4px" onclick="toast('✅ Section settings saved')">Save</button>`;
+}
+function toggleSection(i){SECTIONS[i].enabled=!SECTIONS[i].enabled;renderSections();toast((SECTIONS[i].enabled?'👁 Showing':'🙈 Hiding')+' '+SECTIONS[i].name);}
+function addSection(){SECTIONS.push({name:'New Section',icon:'📄',enabled:false});renderSections();toast('➕ New section added');}
+
+// ── TESTING ────────────────────────────────────────────────────────────────
+function renderTests(){
+  renderTestList('testCheckout',CHECKOUT_TESTS);
+  renderTestList('testCross',CROSS_TESTS);
+  renderTestList('testRegression',REGRESSION_TESTS);
+}
+function renderTestList(id,tests){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=tests.map(t=>`
+    <div class="test-row">
+      <div class="test-status test-${t.status}">${t.status==='pass'?'✓':t.status==='fail'?'✗':'—'}</div>
+      <div style="flex:1;font-size:12px"><div style="font-weight:600">${t.name}</div>${t.detail?`<div style="font-size:11px;color:var(--text3)">${t.detail}</div>`:''}</div>
+      ${t.status==='fail'?`<button class="btn btn-sm btn-danger" onclick="toast('🐛 Bug report filed')">File Bug</button>`:''}
+    </div>`).join('');
+  const pass=tests.filter(t=>t.status==='pass').length,fail=tests.filter(t=>t.status==='fail').length;
+  el.innerHTML+=`<div style="padding:10px 0;font-size:12px;color:var(--text3)">✅ ${pass} passed · ❌ ${fail} failed · ${tests.length-pass-fail} skipped</div>`;
+}
+function runTests(){toast('▶ Running 47 tests via Playwright CI…');setTimeout(()=>toast('✅ 45 passed · ❌ 2 failed — see results'),1800);}
+
+// ── ACCESSIBILITY ──────────────────────────────────────────────────────────
+function renderA11y(){
+  document.getElementById('a11yFeed').innerHTML=`<div class="card-title">♿ Issues — WCAG 2.1 AA</div>`+
+    A11Y_ISSUES.map(i=>`
+      <div class="a11y-issue">
+        <div class="a11y-icon">${i.icon}</div>
+        <div>
+          <div class="a11y-label">${i.label}</div>
+          <div class="a11y-desc">${i.desc}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600">${i.wcag}</div>
+          <div style="display:flex;gap:6px;margin-top:7px">
+            <button class="btn btn-sm btn-gold" onclick="toast('🔧 Fix applied and verified')">Apply Fix</button>
+            <button class="btn btn-sm btn-outline" onclick="toast('📋 Issue exported')">Export</button>
+          </div>
+        </div>
+      </div>`).join('');
+}
+function runA11y(){toast('♿ Running axe-core audit…');setTimeout(()=>{toast('Audit complete — 3 issues found');},1400);}
+
+// ── TICKETS ────────────────────────────────────────────────────────────────
+function renderTickets(){
+  const list=ticketFilter==='all'?TICKETS:TICKETS.filter(t=>t.type===ticketFilter);
+  document.getElementById('ticketList').innerHTML=list.map(t=>`
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:700;color:var(--text3)">${t.id}</span>
+            <span class="badge badge-${t.priority==='High'?'red':t.priority==='Medium'?'gold':'gray'}">${t.priority}</span>
+            <span class="badge badge-gray">${t.type}</span>
+            <span class="badge badge-${t.status==='open'?'red':t.status==='resolved'?'green':'gold'}">${t.status}</span>
+          </div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:5px">${t.title}</div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.5">${t.desc}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:5px">Store: ${t.store}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <button class="btn btn-gold btn-sm" onclick="toast('🔧 Working on ${t.id}')">Investigate</button>
+          <button class="btn btn-outline btn-sm" onclick="toast('✅ ${t.id} resolved')">Resolve</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function filterTickets(f){ticketFilter=f;renderTickets();}
+
+// ── LIVE KPI ────────────────────────────────────────────────────────────────
+setInterval(()=>{
+  const el=document.getElementById('kpiOrders');
+  if(el)el.textContent=312+Math.floor(Math.random()*5);
+},4000);
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+buildTicker();
+renderDashboard();
+renderStorefront('dua');
+setTimeout(drawCharts,150);
+setTimeout(drawCharts,600);
+</script>
